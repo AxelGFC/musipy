@@ -1,5 +1,3 @@
-#pygame.mixer.pause()pygame.mixer.unpause()pygame.mixer.fadeout()
-
 import pygame as pg
 import numpy as np
 from time import sleep
@@ -15,7 +13,7 @@ ctk.set_default_color_theme("green")
 
 app = ctk.CTk()
 app.geometry("720x480")
-app.title("Mubu")
+app.title("Musipy")
 
 # Inicialización de Pygame
 pg.init()
@@ -280,18 +278,22 @@ def reproducir_cancion():
             reproducir_nota(nota, t_entre_compases, estilo=sonido_acordes)
         
         for x in range(4):
-            app.update()
             indice = i * 4 + x
 
             if indice < largo_melodia and continuar_cancion:
                 reproducir_nota(mel[indice], bps, estilo=sonido_melodia)
                 reproducir_percusion(perc[indice])
-                sleep(bps)
+                for z in range(10):
+                    app.update()
+                    sleep(bps/10)
         i+=1    
     pg.mixer.fadeout(800)
+    label_nota_iz.configure(text = " ")
+    label_nota_cen.configure(text = " ")
+    label_nota_der.configure(text = " ")  
 
 def guardar_cancion():
-    if len(entrada_nombre.get())>0:
+    if len(entrada_nombre.get())>0 and len(entrada_nombre.get())<=14:
         global base, mel, son, tem,perc,notas_pantalla,esc,tip_esc
         son_base, son_melodia = son
         base_procesada = ""
@@ -331,13 +333,15 @@ def guardar_cancion():
 
         try:
             final_df.to_csv(ruta_archivo,index=False)
-            print("Datos guardados en " + ruta_archivo)
+            mostrar_mensaje("Datos guardados en " + ruta_archivo)
+            abrir_ventana_principal()
         except Exception as error:
-            print(f"Error al guardar el archivo CSV: {error}")
+            mostrar_mensaje(f"Error al guardar el archivo CSV: {error}")
         
-        abrir_ventana_principal()
+    elif len(entrada_nombre.get())>14:
+        mostrar_mensaje("El nombre es demasiado largo")
     else:
-        print("Escriba un nombre")
+        mostrar_mensaje("Escriba un nombre")
 
 def abrir_ventana_principal():
     frame5.place_forget()
@@ -348,7 +352,7 @@ def abrir_ventana_principal():
     frame1.place(relx=0.05, rely=0.05, anchor=tk.NW)
     frame2.place(relx=0.95, rely=0.05, anchor=tk.NE)
     frame3.place(relx=0.50, rely=0.95, anchor=tk.S)
-    frame4.place(relx=0.95, rely=0.5, anchor=tk.E)
+    frame4.place(relx=0.95, rely=0.6, anchor=tk.E)
 
 
 def abrir_ventana_guardar():
@@ -373,17 +377,17 @@ def cargar_archivo():
             fila = df.iloc[i]
 
             for x in range(len(palabras)):
-                frame = ctk.CTkFrame(master=frame_contenedor, fg_color="transparent",border_color="gray50", border_width=1,corner_radius=0)
+                frame = ctk.CTkFrame(master=frame5, fg_color="transparent",border_color="gray50", border_width=1,corner_radius=0)
                 frame.grid(column=x, row=i+1,pady = 10)
                 
                 ctk.CTkLabel(master=frame, font=fuente_fixedsys, text=fila[palabras[x]], anchor="center",width=125).pack(padx=30, pady=5)
 
                 if x == len(palabras)-1:
-                    frame = ctk.CTkFrame(master=frame_contenedor, fg_color="transparent",border_color="gray50", border_width=1,corner_radius=0)
+                    frame = ctk.CTkFrame(master=frame5, fg_color="transparent",border_color="gray50", border_width=1,corner_radius=0)
                     frame.grid(column=x+1, row=i+1,pady = 10)
-                    ctk.CTkButton(master=frame,font=fuente_fixedsys, command=lambda indice = i:cargar_cancion(indice), width=20,corner_radius=80, text=">").pack(padx=15, pady=5)
+                    ctk.CTkButton(master=frame,font=fuente_fixedsys, command=lambda indice = i:cargar_cancion(indice), width=20,corner_radius=80, text=">").pack(padx=5, pady=5)
     else:
-        print("No se selecciono una ruta")
+        mostrar_mensaje("No se selecciono una ruta")
 
 
 def abrir_ventana_cargar():
@@ -392,15 +396,15 @@ def abrir_ventana_cargar():
     frame3.place_forget()
     frame4.place_forget()
 
-    frame5.place(relx=0.05, rely=0.05, anchor=tk.NW)
+    frame5.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
     boton_cancelar_carga.place(anchor = "sw",relx=0.10, rely=0.93)
     boton_seleccionar_archivo.place(anchor = "se",relx=0.90, rely=0.93)
 
     palabras = ["Nombre","Sonido Base", "Sonido Melodia"]
     for i in range(len(palabras)):
-            frame = ctk.CTkFrame(master=frame_contenedor, fg_color="transparent",border_color="gray50", border_width=1,corner_radius=0)
-            frame.grid(column=i, row=0,pady = 10)
-            ctk.CTkLabel(frame, font=fuente_fixedsys, text=palabras[i], anchor="center",width=125).pack(padx=30, pady=5)
+        frame = ctk.CTkFrame(master=frame5, fg_color="transparent",border_color="gray50", border_width=1,corner_radius=0)
+        frame.grid(column=i, row=0,pady = 10)
+        ctk.CTkLabel(frame, font=fuente_fixedsys, text=palabras[i], anchor="center",width=125).pack(padx=30, pady=5)
     
 
 def cargar_cancion(indice):
@@ -456,14 +460,21 @@ def cargar_cancion(indice):
     boton_ventana_guardar.configure(state = "disabled")
 
     reproducir_cancion()
-                
+
+def mostrar_mensaje(mensaje):
+    def ocultar_mensaje():
+        frame_mensaje.place_forget()
+        label_mensaje.configure(text = "")   
+
+    label_mensaje.configure(text = mensaje)
+    frame_mensaje.place(anchor = "n",rely = 0.03,relx = .5)
+    app.after(5000,ocultar_mensaje)
         
 # Interfaz
 fuente_fixedsys = ctk.CTkFont(family="Fixedsys",size=20)
 fuente_fixedsys2 = ctk.CTkFont(family="Fixedsys",size=35)
 fuente_fixedsys3 = ctk.CTkFont(family="Fixedsys",size=50)
 
-#ctk.CTkLabel(app, text="Generar canción aleatoria",font=fuente_fixedsys).pack(padx=10, pady=10)
 
 #FRAME 1
 frame1 = ctk.CTkFrame(master=app,height=150,width=500)
@@ -542,7 +553,7 @@ boton_cargar.grid(column = 3,row = 0,padx = 10,pady = 10)
 
 #FRAME 4
 frame4 = ctk.CTkFrame(master=app)#,border_width=2,border_color=("black","gray25")
-frame4.place(relx=0.95, rely=0.5, anchor=tk.E)
+frame4.place(relx=0.95, rely=0.6, anchor=tk.E)
 
 label_nota_iz = ctk.CTkLabel(frame4,font=fuente_fixedsys3, text=" ",anchor="w", width=130)
 label_nota_iz.grid(column = 0,row = 0,padx = 20,pady = 30)
@@ -556,13 +567,10 @@ label_nota_der.grid(column = 2,row = 0,padx = 20,pady = 30)
 
 #VENTANA CARGAR
 #FRAME 5
-frame5 = ctk.CTkFrame(master=app,height=150,width=500)
-frame_contenedor = ctk.CTkFrame(master=frame5)
-
-frame_contenedor.pack(padx=5, pady=5, anchor="w")
+frame5 = ctk.CTkScrollableFrame(master=app,height=300,width=620)
 
 boton_cancelar_carga = ctk.CTkButton(master=app, text="Cancelar",font=fuente_fixedsys,command=abrir_ventana_principal)
-boton_seleccionar_archivo = ctk.CTkButton(master=app, text="Seleccionar Archivo",font=fuente_fixedsys,command=cargar_archivo)
+boton_seleccionar_archivo = ctk.CTkButton(master=app, text="Abrir Archivo",font=fuente_fixedsys,command=cargar_archivo)
 
 #VENTANA GUARDAR
 #FRAME 6
@@ -575,6 +583,11 @@ boton_cancelar_nombre.grid(column = 0,row = 1,padx = 10,pady = 10)
 
 boton_guardar_nombre = ctk.CTkButton(master=frame6, text="Guardar",font=fuente_fixedsys,command=guardar_cancion)
 boton_guardar_nombre.grid(column = 1,row = 1,padx = 10,pady = 10)
+
+#FRAME MENSAJE
+frame_mensaje = ctk.CTkFrame(master=app,corner_radius=100)
+label_mensaje = ctk.CTkLabel(frame_mensaje,font=fuente_fixedsys)
+label_mensaje.pack(padx = 10, pady = 3)
 
 app.mainloop()
 pg.quit()
