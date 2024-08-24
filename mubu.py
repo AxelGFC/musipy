@@ -31,15 +31,15 @@ i_escal_men = [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 29,
 estilos = ("Sine", "Piano", "Sawtooth", "Square", "Triangle", "Organ")
 estilos_percusion = ("Bombo","Caja")
 
-notas_pantalla = []
-base = []
-mel = []
-perc = []
-son = ["Aleatoria", "Aleatoria"]
-esc = ""
-tip_esc = ""
-df = pd.DataFrame()
-continuar_cancion = False
+notas_pantalla_global = []
+base_global = []
+mel_global = []
+perc_global = []
+son_global = ["Aleatoria", "Aleatoria"]
+esc_global = ""
+tip_esc_global = ""
+df_global = pd.DataFrame()
+continuar_cancion_global = False
 
 
 def chance(porcentaje):
@@ -64,7 +64,7 @@ def crear_acordes(esc_nota,esc_tipo,largo = 64):
     notas_usables = notas_cortadas[escala[:len(escala)-i_nota_base-1]]
 
     acordes = []
-    notas_pantalla = []
+    notas_pantalla_global = []
     for _ in range(largo):
         indice = randint(0, 6)
         mostrar = dict_clav_frec[notas_usables[indice]]
@@ -74,9 +74,9 @@ def crear_acordes(esc_nota,esc_tipo,largo = 64):
             mostrar = mostrar + "dim"
         acorde = [notas_usables[indice], notas_usables[indice + 2], notas_usables[indice + 4]]
         acordes.append(acorde)
-        notas_pantalla.append(mostrar)
+        notas_pantalla_global.append(mostrar)
 
-    return acordes,esc_nota,esc_tipo,notas_pantalla
+    return acordes,esc_nota,esc_tipo,notas_pantalla_global
 
 
 def crear_base(acordes, p_empezar=None, p_parar=None):
@@ -87,7 +87,7 @@ def crear_base(acordes, p_empezar=None, p_parar=None):
         p_parar = randint(0, 2)
 
     continuar = chance(p_empezar)
-    base = [
+    base_global = [
         (acorde if continuar else [0, 0, 0, 0]) for acorde in acordes
     ]
 
@@ -96,9 +96,9 @@ def crear_base(acordes, p_empezar=None, p_parar=None):
             continuar = not chance(p_parar)
         else:
             continuar = chance(p_empezar)
-        base[i] = (acordes[i] if continuar else [0, 0, 0, 0])
+        base_global[i] = (acordes[i] if continuar else [0, 0, 0, 0])
 
-    return base
+    return base_global
 
 
 def crear_melodia(acordes, probabilidad=None):
@@ -136,35 +136,35 @@ def crear_percusion(p_empezar = None,p_parar=None,largo = 64):
 
 
 def crear_cancion():
-    global base, mel, son, esc,notas_pantalla,tem,tip_esc,perc,continuar_cancion
-    continuar_cancion = False
-    esc = esc_variable.get()
-    tip_esc = tipo_esc_variable.get()
-    acordes,esc,tip_esc,notas_pantalla = crear_acordes(esc,tip_esc)
-    base = crear_base(acordes)
-    mel = crear_melodia(acordes)
-    perc = crear_percusion()
-    tem = tem_entrada_menu.get()
+    global base_global, mel_global, son_global, esc_global,notas_pantalla_global,tem_global,tip_esc_global,perc_global,continuar_cancion_global
+    continuar_cancion_global = False
+    esc_global = esc_variable.get()
+    tip_esc_global = tipo_esc_variable.get()
+    acordes,esc_global,tip_esc_global,notas_pantalla_global = crear_acordes(esc_global,tip_esc_global)
+    base_global = crear_base(acordes)
+    mel_global = crear_melodia(acordes)
+    perc_global = crear_percusion()
+    tem_global = tem_entrada_menu.get()
     
-    if not tem.isdigit():
-        tem = randint(70, 140)
+    if not tem_global.isdigit():
+        tem_global = randint(70, 140)
     else:
-        tem = int(tem)
+        tem_global = int(tem_global)
     
     if mel_variable.get() == "Aleatoria":
-        son[1] = choice(estilos)
+        son_global[1] = choice(estilos)
     else:
-        son[1] = mel_variable.get()
+        son_global[1] = mel_variable.get()
 
     if bas_variable.get() == "Aleatoria":
-        son[0] = choice(estilos)
+        son_global[0] = choice(estilos)
     else:
-        son[0] = bas_variable.get()
+        son_global[0] = bas_variable.get()
     
-    label_base.configure(text = "Base: "+son[0])
-    label_melodia.configure(text = "Melodia: "+son[1])
-    label_tempo.configure(text = "BPS: "+str(tem))
-    label_escala.configure(text = "Escala: "+ tip_esc +" de " + esc)
+    label_base.configure(text = "Base: "+son_global[0])
+    label_melodia.configure(text = "Melodia: "+son_global[1])
+    label_tempo.configure(text = "BPM: "+str(tem_global))
+    label_escala.configure(text = "Escala: "+ tip_esc_global +" de " + esc_global)
     boton_reproducir.configure(state = "normal")
     boton_ventana_guardar.configure(state = "normal")
 
@@ -208,6 +208,7 @@ def reproducir_nota(frecuencia, duracion, estilo, sampling_rate=44100):
     if estilo == "Piano":sonido.set_volume(0.1)
     else:sonido.set_volume(0.04)
     sonido.play()
+
 
 def reproducir_percusion(sonido):
     
@@ -254,35 +255,35 @@ def reproducir_percusion(sonido):
 
 def reproducir_cancion():
     boton_reproducir.configure(state = "disabled")
-    global base, mel, son, tem,perc,continuar_cancion
-    continuar_cancion = True
+    global base_global, mel_global, son_global, tem_global,perc_global,continuar_cancion_global
+    continuar_cancion_global = True
 
-    bps = 60 / tem
+    bps = 60 / tem_global
     t_entre_compases = bps * 4
-    largo_melodia = len(mel)
-    largo_base = len(base)
+    largo_melodia = len(mel_global)
+    largo_base = len(base_global)
 
-    sonido_acordes, sonido_melodia = son
+    sonido_acordes, sonido_melodia = son_global
     i = 0
-    while continuar_cancion and i<largo_base:
-        label_nota_iz.configure(text = notas_pantalla[i])
+    while continuar_cancion_global and i<largo_base:
+        label_nota_iz.configure(text = notas_pantalla_global[i])
             
         if i < largo_base - 2:
-            label_nota_cen.configure(text = notas_pantalla[i + 1])
-            label_nota_der.configure(text = notas_pantalla[i + 2])  
+            label_nota_cen.configure(text = notas_pantalla_global[i + 1])
+            label_nota_der.configure(text = notas_pantalla_global[i + 2])  
         elif i == largo_base - 2:
-            label_nota_cen.configure(text = notas_pantalla[i + 1])
+            label_nota_cen.configure(text = notas_pantalla_global[i + 1])
             label_nota_der.configure(text = " ")
 
-        for nota in base[i]:
+        for nota in base_global[i]:
             reproducir_nota(nota, t_entre_compases, estilo=sonido_acordes)
         
         for x in range(4):
             indice = i * 4 + x
 
-            if indice < largo_melodia and continuar_cancion:
-                reproducir_nota(mel[indice], bps, estilo=sonido_melodia)
-                reproducir_percusion(perc[indice])
+            if indice < largo_melodia and continuar_cancion_global:
+                reproducir_nota(mel_global[indice], bps, estilo=sonido_melodia)
+                reproducir_percusion(perc_global[indice])
                 for z in range(10):
                     app.update()
                     sleep(bps/10)
@@ -292,22 +293,23 @@ def reproducir_cancion():
     label_nota_cen.configure(text = " ")
     label_nota_der.configure(text = " ")  
 
+
 def guardar_cancion():
     if len(entrada_nombre.get())>0 and len(entrada_nombre.get())<=14:
-        global base, mel, son, tem,perc,notas_pantalla,esc,tip_esc
-        son_base, son_melodia = son
+        global base_global, mel_global, son_global, tem_global,perc_global,notas_pantalla_global,esc_global,tip_esc_global
+        son_base, son_melodia = son_global
         base_procesada = ""
         mel_procesada = ""
 
-        for acorde in base:
+        for acorde in base_global:
             for nota in acorde:
                 base_procesada += str(nota)+"|"
 
-        for nota in mel:
+        for nota in mel_global:
             mel_procesada += str(nota)+"|"
         
-        perc_procesada = "|".join(perc)
-        n_pant_procesada = "|".join(notas_pantalla)
+        perc_procesada = "|".join(perc_global)
+        n_pant_procesada = "|".join(notas_pantalla_global)
         
         datos = {"Nombre":entrada_nombre.get(),
                 "Base":[base_procesada],
@@ -315,10 +317,10 @@ def guardar_cancion():
                 "Percusion":[perc_procesada],
                 "Sonido Base":[son_base],
                 "Sonido Melodia":[son_melodia],
-                "BPS":[str(tem)],
+                "BPM":[str(tem_global)],
                 "Notas En Pantalla":[n_pant_procesada],
-                "Escala": [esc],
-                "Tipo De Escala": [tip_esc]}
+                "Escala": [esc_global],
+                "Tipo De Escala": [tip_esc_global]}
         
         nuevo_df = pd.DataFrame(datos)
 
@@ -342,6 +344,7 @@ def guardar_cancion():
         mostrar_mensaje("El nombre es demasiado largo")
     else:
         mostrar_mensaje("Escriba un nombre")
+
 
 def abrir_ventana_principal():
     frame5.place_forget()
@@ -369,12 +372,12 @@ def cargar_archivo():
     ruta_archivo = askopenfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
     
     if ruta_archivo != "":
-        global df
-        df = pd.read_csv(ruta_archivo)
+        global df_global
+        df_global = pd.read_csv(ruta_archivo)
         
 
-        for i in range(len(df)):
-            fila = df.iloc[i]
+        for i in range(len(df_global)):
+            fila = df_global.iloc[i]
 
             for x in range(len(palabras)):
                 frame = ctk.CTkFrame(master=frame5, fg_color="transparent",border_color="gray50", border_width=1,corner_radius=0)
@@ -410,7 +413,7 @@ def abrir_ventana_cargar():
 def cargar_cancion(indice):
     abrir_ventana_principal()
     
-    fila = df.iloc[indice]
+    fila = df_global.iloc[indice]
     base_cargada = fila["Base"]
     base_cargada = base_cargada.split("|")
     base_cargada.pop()
@@ -434,28 +437,28 @@ def cargar_cancion(indice):
     percusion_final = percusion_final.split("|")
 
     sonidos = [fila["Sonido Base"],fila["Sonido Melodia"]]
-    bps = fila["BPS"]
+    bpm = fila["BPM"]
     tipo_de_escala_cargada = fila["Tipo De Escala"]
     escala_cargada = fila["Escala"]
 
     notas_pant_cargada = fila["Notas En Pantalla"]
     notas_pant_cargada = notas_pant_cargada.split("|")
 
-    global base, mel, son,notas_pantalla,tem,perc,esc,tip_esc
-    esc = str(escala_cargada)
-    tip_esc = str(tipo_de_escala_cargada)
-    son = sonidos
-    notas_pantalla = notas_pant_cargada
-    base = base_final
-    mel = melodia_final
-    perc = percusion_final
-    tem = bps
+    global base_global, mel_global, son_global,notas_pantalla_global,tem_global,perc_global,esc_global,tip_esc_global
+    esc_global = str(escala_cargada)
+    tip_esc_global = str(tipo_de_escala_cargada)
+    son_global = sonidos
+    notas_pantalla_global = notas_pant_cargada
+    base_global = base_final
+    mel_global = melodia_final
+    perc_global = percusion_final
+    tem_global = bpm
 
 
-    label_base.configure(text = "Base: "+son[0])
-    label_melodia.configure(text = "Melodia: "+son[1])
-    label_tempo.configure(text = "BPS: "+str(tem))
-    label_escala.configure(text = "Escala: "+ tip_esc +" de " + esc)
+    label_base.configure(text = "Base: "+son_global[0])
+    label_melodia.configure(text = "Melodia: "+son_global[1])
+    label_tempo.configure(text = "BPM: "+str(tem_global))
+    label_escala.configure(text = "Escala: "+ tip_esc_global +" de " + esc_global)
     boton_reproducir.configure(state = "normal")
     boton_ventana_guardar.configure(state = "disabled")
 
@@ -514,7 +517,7 @@ esc_tipo_menu.grid(column = 1, row = 0)
 
 frame_tem = ctk.CTkFrame(master=frame1)
 frame_tem.pack(padx = 10,pady = 5,anchor = "e")
-ctk.CTkLabel(frame_tem, text="BPS:",font=fuente_fixedsys).grid(column = 0, row = 0,padx =5)
+ctk.CTkLabel(frame_tem, text="BPM:",font=fuente_fixedsys).grid(column = 0, row = 0,padx =5)
 tem_entrada_menu = ctk.CTkEntry(master=frame_tem,font=fuente_fixedsys,width=100,placeholder_text="Aleatorio")
 tem_entrada_menu.grid(column = 1, row = 0)
 
@@ -529,7 +532,7 @@ label_base.pack(padx = 10,pady = 5)
 label_melodia = ctk.CTkLabel(frame2,font=fuente_fixedsys, text="Melodia:",width=155,anchor="w")
 label_melodia.pack(padx = 10,pady = 0)
 
-label_tempo = ctk.CTkLabel(frame2,font=fuente_fixedsys, text="Tempo:",width=155,anchor="w")
+label_tempo = ctk.CTkLabel(frame2,font=fuente_fixedsys, text="BPM:",width=155,anchor="w")
 label_tempo.pack(padx = 10,pady = 5)
 
 label_escala = ctk.CTkLabel(frame2,font=fuente_fixedsys, text="Escala:",width=155,anchor="w")
